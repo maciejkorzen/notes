@@ -1,0 +1,44 @@
++ install
+w apache wlaczyc logowanie w formacie vhost_combined ("%v:%p")
+aptitude install php5-geoip php5-dev libgeoip-dev php5-mysql php5-gd php5-curl php5-cli
+echo "geoip.custom_directory=/var/www/piwiki.firma.com/misc" >> /etc/php5/conf.d/geoip.ini
+cd /var/www/piwik.firma.com/misc
+wget http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz
+gunzip GeoLiteCity.dat.gz
+mv GeoLiteCity.dat GeoIPCity.dat
+chown www-data:root GeoIPCity.dat
+chmod 640 GeoIPCity.dat
+/etc/init.d/apache2 restart
+mysql -p
+CREATE DATABASE piwik;
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER, CREATE TEMPORARY TABLES, LOCK TABLES, CREATE VIEW, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE on piwik.* to 'piwik'@'127.0.0.1' identified by '...HASLO...';
+
+wgrac piwik na serwer
+chown -Rv www-data /var/www/piwik
+cd /var/www/piwki
+skonfigurowac apache
+odpalic instalacje
+wylaczyc w gui auto archiving i ustawic max archive time na 3600
+
+++ /etc/cron.d/piwik
+MAILTO=adres-email@administratora.com
+13 * * * *      www-data /usr/local/bin/piwik-analyze
+
+++ /usr/local/bin/piwik-analyze
+<<
+#!/bin/sh
+
+for i in /var/log/apache2/*access.log*; do
+	python /var/www/piwik/misc/log-analytics/import_logs.py --url=https://www.firma.com/piwik/ "$i" \
+		--recorders=4 \
+		--enable-http-errors \
+		--enable-http-redirects \
+		--enable-static \
+		--enable-bots \
+		--enable-reverse-dns \
+		--exclude-path=\*/piwik/\* \
+		--show-progress \
+		--idsite=1 >/dev/null
+done
+/usr/bin/php /var/www/piwik/misc/cron/archive.php --accept-invalid-ssl-certificate --url=https://www.firma.com/piwik/ >/dev/null
+>>
