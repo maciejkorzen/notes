@@ -1,0 +1,41 @@
+List of strings to egrep in logfiles to quickly find potential problems.
+
+cat << EOF > egrep-f-errors
+error
+fail
+failed
+crit
+warn
+exception
+caught
+retry
+unable
+permission
+denied
+panic
+oops
+\boom\b
+kill
+segfault
+\bfatal
+OutOfMemory
+timeout
+unstable
+exit
+refused
+abort
+drop
+unable
+down
+exceeded
+lost
+unable
+invalid
+grsec
+fault
+not permitted
+reject
+EOF
+
+egrep -f egrep-f-errors __SOME_LOG_FILE__
+
